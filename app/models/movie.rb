@@ -1,5 +1,5 @@
 class Movie < ActiveRecord::Base
     def self.with_ratings(ratings)
-        return Movie.all.where(rating: ratings) if ratings.present? and ratings.any?
+        return Movie.where(rating: ratings)
     end
 end
