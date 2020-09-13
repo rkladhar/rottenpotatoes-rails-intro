@@ -18,12 +18,14 @@ class MoviesController < ApplicationController
     elsif(sort == 'sort_by_release_date') then
       @movies = Movie.order(release_date: :asc)
       @release_header = 'hilite'
-    else
-      @movies = Movie.all
     end
     @all_ratings=Movie.select(:rating).map(&:rating).uniq.sort
     @selected_ratings = (params["ratings"].present? ? params["ratings"] : @all_ratings)
-    @movies = @movies.where(rating: deep_hash_keys(params[:ratings])) if params[:ratings].present? and params[:ratings].any?
+    if params[:ratings].present? and params[:ratings].any? then
+      @movies = Movie.with_ratings(deep_hash_keys(params[:ratings])) 
+    else
+      @movies = Movie.all
+    end
   end
   
   def deep_hash_keys(h)
