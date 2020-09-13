@@ -21,6 +21,13 @@ class MoviesController < ApplicationController
     else
       @movies = Movie.all
     end
+    @all_ratings=Movie.select(:rating).map(&:rating).uniq.sort
+    @selected_ratings = (params["ratings"].present? ? params["ratings"] : @all_ratings)
+    @movies = @movies.where(rating: deep_hash_keys(params[:ratings])) if params[:ratings].present? and params[:ratings].any?
+  end
+  
+  def deep_hash_keys(h)
+    h.keys + h.map { |_, v| v.is_a?(Hash) ? deep_hash_keys(v) : nil }.flatten.compact
   end
 
   def new
