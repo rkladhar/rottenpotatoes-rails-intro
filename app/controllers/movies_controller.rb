@@ -12,19 +12,24 @@ class MoviesController < ApplicationController
 
   def index
     sort = params[:sort]
-    if(sort == 'sort_by_title') then
-      @movies = Movie.order(title: :asc)
-      @title_header = 'hilite'
-    elsif(sort == 'sort_by_release_date') then
-      @movies = Movie.order(release_date: :asc)
-      @release_header = 'hilite'
-    elsif(!sort.present? && (params[:ratings].present? and params[:ratings].any?)) then
-      @movies = Movie.with_ratings(deep_hash_keys(params[:ratings]))
-    else
-      @movies = Movie.all
-    end
     @all_ratings=Movie.select(:rating).map(&:rating).uniq.sort
-    @selected_ratings = (params["ratings"].present? ? params["ratings"] : @all_ratings)
+    @selected_ratings = (params[:ratings].present? ? 
+    deep_hash_keys(params[:ratings]) : session[:selected_ratings].present? ?
+    session[:selected_ratings] : @all_ratings)
+    
+    if(sort == 'sort_by_title' || (!sort.present? && session[:sort] == 'sort_by_title')) then
+      @movies = Movie.with_ratings(@selected_ratings).order(title: :asc)
+      @title_header = 'hilite'
+    elsif(sort == 'sort_by_release_date' || (!sort.present? &&session[:sort] == 'sort_by_release_date')) then
+      @movies = Movie.with_ratings(@selected_ratings).order(release_date: :asc)
+      @release_header = 'hilite'
+    else
+      @movies = Movie.with_ratings(@selected_ratings)
+    end
+    
+    session[:sort] = sort.present? ? sort : session[:sort]
+    session[:selected_ratings] = @selected_ratings
+    
   end
   
   def deep_hash_keys(h)
